@@ -1,0 +1,29 @@
+#Fpl 
+
+## FPL API endpoints
+#### https://fantasy.premierleague.com/api/bootstrap-static/
+
+helpful entries:
+1. events
+2. teams
+3. toal_players
+4. elements
+5. element_types
+
+#### https://fantasy.premierleague.com/api/fixtures/(?event=N)
+returns data for all fixtures. Optional continuation returns fixtures for Nth GW
+
+#### https://fantasy.premierleague.com/api/element-summary/{element_id}/
+Contains fixtures for current season of player and past history of cost and points
+
+#### https://fantasy.premierleague.com/api/my-team/{manager_id}/
+requires authentication
+
+#### https://fantasy.premierleague.com/api/event/{event_id}/live/
+might be useful
+
+
+
+## Todo
+1. Get the number of players playing in the current season
+2. Get basic playerdata into a json file
