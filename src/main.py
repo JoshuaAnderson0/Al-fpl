@@ -7,7 +7,6 @@ from typing import Dict, List, Callable
 from api import API
 from player import Player
 from player_types import *
-from team import Team
 from min_maxer import MinMaxer
 
 
@@ -59,8 +58,8 @@ def evaluate_team(team: [Player]) -> float:
         (
             sum(player.roi for game in player.future_games if datetime.strptime(game, "%Y-%m-%dT%H:%M:%SZ").isocalendar().week == CURRENT_WEEK)
             - (player.roi * player.red_cards)
-            # - (player.roi * player.yellow_cards * 0.25)
-            - player.cost
+            - (player.roi * player.yellow_cards * 0.25)
+            # - player.cost
         )
         for player in team
     )
@@ -77,7 +76,7 @@ async def main_async():
     players = sorted(players, key=lambda x: x.roi, reverse=True)
 
     # Blacklist these players because for some reason they don't actually appear on the fpl website
-    players = [player for player in players if player.name not in ["Ellis Simms", "Pierre-Emerick Aubameyang", "Trevoh Chalobah", "Mads Bidstrup", "Halil Dervişoğlu", "Antwoine Hackford"]]
+    players = [player for player in players if player.name not in ["Ellis Simms", "Pierre-Emerick Aubameyang", "Trevoh Chalobah", "Mads Bidstrup", "Halil Dervişoğlu", "Antwoine Hackford", "Thiago Alcántara do Nascimento"]]
 
     print('Choosing best team of members')
 
