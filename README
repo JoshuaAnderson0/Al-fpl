@@ -21,9 +21,3 @@ requires authentication
 
 #### https://fantasy.premierleague.com/api/event/{event_id}/live/
 might be useful
-
-
-
-## Todo
-1. Get the number of players playing in the current season
-2. Get basic playerdata into a json file
