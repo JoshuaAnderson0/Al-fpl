@@ -1,52 +1,53 @@
-﻿import asyncio
-
-from typing import Dict, List
-
-from player import Player
+﻿from typing import TypeVar, List, Tuple, Callable, Generic
+from datetime import datetime
 
 
-class MinMaxer:
-    def __init__(self, score_func: lambda player: float, max_length: int, validation_func: lambda players: bool):
-        self.score_func = score_func
-        self.max_length = max_length
-        self.validation_func = validation_func
-        self.memo: Dict[str, List[Player]] = {}
+T = TypeVar('T')
+CURRENT_WEEK = datetime.now().isocalendar().week
 
-    async def get_best_permutation_async(self, players: List[Player], batch_size: int = 60) -> List[Player]:
-        self.memo = {}
 
-        index = 0
-        await self.get_best_permutation_with_head_async([players[0]], players[1:])
-        # while True:
-        #     tasks = []
-        #     for i in range(batch_size):
-        #         if index >= len(players):
-        #             continue
-        # 
-        #         head = [players[index]]
-        #         remaining = [player for player in players if player not in head]
-        #         tasks.append(asyncio.ensure_future(self.get_best_permutation_with_head_async(head, remaining)))
-        #         index += 1
-        # 
-        #     await asyncio.gather(*tasks)
-        #     tasks = []
-        #     print(index)
-        # 
-        #     if index >= len(players):
-        #         break
+class MinMaxer(Generic[T]):
+    def __init__(self,
+                 next_move_func: Callable[[List[T]], List[T]], 
+                 eval_func: Callable[[List[T]], float],
+                 hash_func: Callable[[List[T]], str] = lambda x: str(x)):
+        self.next_move_func = next_move_func
+        self.eval_func = eval_func
+        self.hash_func = hash_func
+        self.nodes_memo = []
 
-        return []
+    def solve(self, max_depth: int) -> List[T]:
+        return self.search_tree([], self.next_move_func([]), max_depth)
 
-    async def get_best_permutation_with_head_async(self, players: List[Player], remaining: List[Player]):
-        cached_key = ''.join(sorted([player.name for player in players]))
-        if cached_key in self.memo:
-            return
-        self.memo[cached_key] = players
+    def search_tree(self,
+                    current_tree: List[T],
+                    possible_nodes: List[T],
+                    depth: int,
+                    beta: float = float('-inf')) -> T:
+        if depth == 0 or len(possible_nodes) == 0:
+            return current_tree
 
-        for player in remaining:
-            new_team = [*players, player]
-            if self.validation_func(new_team):
-                new_remaining = [player for player in remaining if player not in new_team]
-                await self.get_best_permutation_with_head_async(new_team, new_remaining)
-            else:
-                break
+        result = None
+        local_best = float('-inf')
+        local_best_index = 0
+        for i, node in enumerate(possible_nodes):
+            new_tree = current_tree + [node]
+            if self.hash_func(new_tree) in self.nodes_memo:
+                return []
+            self.nodes_memo.append(self.hash_func(new_tree))
+
+            score = self.eval_func(new_tree)
+            if score > local_best:
+                local_best = score
+                local_best_index = i
+
+            if score <= beta:
+                continue
+            beta = score
+
+            result = self.search_tree(new_tree, self.next_move_func(new_tree), depth - 1, beta)
+
+        if result is None:
+            new_tree = current_tree + [possible_nodes[local_best_index]]
+            return self.search_tree(new_tree, self.next_move_func(new_tree), depth - 1, beta)
+        return result
