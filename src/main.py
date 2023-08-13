@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+import json
 
 from datetime import datetime
 from typing import Dict, List, Callable
@@ -59,7 +60,6 @@ def evaluate_team(team: [Player]) -> float:
             sum(player.roi for game in player.future_games if datetime.strptime(game, "%Y-%m-%dT%H:%M:%SZ").isocalendar().week == CURRENT_WEEK)
             - (player.roi * player.red_cards)
             - (player.roi * player.yellow_cards * 0.25)
-            # - player.cost
         )
         for player in team
     )
@@ -76,7 +76,11 @@ async def main_async():
     players = sorted(players, key=lambda x: x.roi, reverse=True)
 
     # Blacklist these players because for some reason they don't actually appear on the fpl website
-    players = [player for player in players if player.name not in ["Ellis Simms", "Pierre-Emerick Aubameyang", "Trevoh Chalobah", "Mads Bidstrup", "Halil Dervişoğlu", "Antwoine Hackford", "Thiago Alcántara do Nascimento"]]
+    blacklist = []
+    with open('blacklist.json', 'r') as f:
+        s = f.read().strip("ï»¿")
+        blacklist = json.loads(s)
+    players = [player for player in players if player.name not in blacklist]
 
     print('Choosing best team of members')
 
